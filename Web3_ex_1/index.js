@@ -40,7 +40,7 @@ const App = {
   },
 
   
-
+// writing backend for my tranfer function from VolcanoCoin
   sendCoin: async function() {
     const amount = parseInt(document.getElementById("amount").value);
     const receiver = document.getElementById("receiver").value;
