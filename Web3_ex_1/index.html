@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>VolcanoCoin | Truffle Webpack Demo w/ Frontend</title>
+  </head>
+  <style>
+    input {
+      display: block;
+      margin-bottom: 12px;
+    }
+  </style>
+  <body>
+    <h1>VolcanoCoin — Example with my Contract</h1>
+    <p>You have <strong class="balance">loading...</strong> VLC</p>
+
+<!Just changing from metacoin to volcano coin>
+    <h1>Send VolcanoCoin</h1>
+
+    <label for="amount">Amount:</label>
+    <input type="text" id="amount" placeholder="e.g. 95" />
+
+    <label for="receiver">To address:</label>
+    <input
+      type="text"
+      id="receiver"
+      placeholder="e.g. 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"
+    />
+
+    <button onclick="App.sendCoin()">Send VolcanoCoin</button>
+
+
+<! Here I add fields for logging all transactions from msg.sender>
+
+    <h1>Look up payment history</h1>
+    <button onclick="App.paymentLookUp()">look up</button>
+    <p>Your payments <strong class="log">loading...</strong> </p>
+
+
+<! This is front end for payment update function(add new payment type, new comment(string) ): >
+
+    <h1>Update payment details</h1>
+
+    <label for="newPaymentType">New Payment Type:</label>
+    <input type="text" id="newPaymentType" placeholder="e.g. Unknown" />
+
+    <label for="_newComment">New Comment:</label>
+    <input type="text" id="_newComment" placeholder="e.g. my first payment" />
+
+    <label for="_idTransaction">Input payment id</label>
+    <input type="text" id="_idTransaction" placeholder= "1" />
+
+
+    <button onclick="App.paymentUpdate()">update</button>
+  
+
+
+
+
+
+
+    <p id="status"></p>
+    <p>
+      <strong>Hint:</strong> open the browser developer console to view any
+      errors and warnings.
+    </p>
+    <script src="index.js"></script>
+  </body>
+</html>
