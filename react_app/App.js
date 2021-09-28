@@ -5,10 +5,14 @@ import getWeb3 from "./getWeb3";
 import "./App.css";
 
 class App extends Component {
-  state = { storageValue: 0, web3: null, accounts: null, contract: null };
+  state = { storageValue: 0, web3: null, accounts: null, contract: null, newValue: 0 };
 
   componentDidMount = async () => {
     try {
+
+      //this.handleChange = this.handleChange.bind(this);
+      this.handleSubmit = this.handleSubmit.bind(this);
+
       // Get network provider and web3 instance.
       const web3 = await getWeb3();
 
@@ -59,12 +63,28 @@ class App extends Component {
   //});
 
     const response = await contract.methods.greet().call();
-    await contract.methods.changeUint(3).send({ from: accounts[0] });
-    const reply = await contract.methods.digit().call();
+    //await contract.methods.changeUint(3).send({ from: accounts[0] });
+    //const reply = await contract.methods.digit().call();
 
-    this.setState({ storageValue: reply});
+    this.setState({ storageValue: response});
 
   };
+
+
+
+  handleChange(event){
+    this.setState({newValue: event.target.value});
+  };
+
+
+  async handleSubmit(event){
+    event.preventDefault();
+    const {accounts, contract} = this.state;
+    await contract.methods.changeUint(this.state.newValue).send({from: accounts[0]});
+    const reply1 = await contract.methods.digit().call();
+    this.setState({storageValue: reply1 });
+  };
+
   
 
 
@@ -100,6 +120,12 @@ class App extends Component {
           Try changing the value stored on <strong>line 42</strong> of App.js.
         </p>
         <div>The stored value is: {this.state.storageValue}</div>
+
+        <form onSubmit = {this.handleSubmit}>
+          <input type = "number" value = {this.state.newValue} onChange={this.handleChange.bind(this)} />
+          <input type = "submit" value = "Submit"/>
+        </form>
+
       </div>
     );
   }
