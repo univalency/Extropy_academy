@@ -7,12 +7,13 @@ import "./App.css";
 class App extends Component {
   state = { storageValue: 0, web3: null, accounts: null, contract: null, 
   address_mint: "", 
-  address_nft: "'"
+  address_nft: "",
   url_nft: 'about:blank', 
   price: 0 , 
   ID: 0, 
+  nft_number: 0,
   owner: null,
-  nft_owners: {}
+  nft_owned: undefined,
 };
 
   componentDidMount = async () => {
@@ -20,6 +21,7 @@ class App extends Component {
 
       this.handleSubmit = this.handleSubmit.bind(this);
       this.handleLookUp = this.handleLookUp.bind(this);
+      this.handleOwnership = this.handleOwnership.bind(this);
 
       // Get network provider and web3 instance.
       const web3 = await getWeb3();
@@ -108,6 +110,15 @@ handleChange = (value, key) => {
     this.setState({owner: nft_owner});
   };
 
+  async handleOwnership(event){
+     event.preventDefault();
+     const {accounts, contract} = this.state;
+     const ownership = await contract.methods.ownershipLog(this.state.address_nft , this.state.nft_number).call();
+     console.log(ownership);
+     //this.setState({nft_owned: ownership});
+
+  };
+
 
 
   render() {
@@ -118,7 +129,7 @@ handleChange = (value, key) => {
       <div className="App">
         <h1>Yury's obscure NFT Marketplace</h1>
         <p>Mint and look up ownerhip history</p>
-        <h2></h2>
+        <h2>Using Pinata IPFS storage</h2>
         <p>
          
         </p>
@@ -158,6 +169,19 @@ handleChange = (value, key) => {
 
         <br></br>
         <div> Current owner: {this.state.owner} </div>
+
+        <br></br>
+        <form onSubmit = {this.handleOwnership} >
+          <label>
+            <p>Look up tokens owned by address: &nbsp;</p>
+            <input name = "address:" type = "text" value = {this.state.address_nft} onChange={event => this.handleChange(event.target.value, "address_nft")} />
+            <input name = "NFT's number:" type = "number" value = {this.state.nft_number} onChange={event => this.handleChange(event.target.value, "nft_number")} />
+            <input type = "submit" value = "Submit"/>
+          </label>
+        </form>
+
+        <br></br>
+        <div> NFT data: {this.state.nft_owned} </div>
 
         <p> NFT minted by contract owner: </p>
         <a>
