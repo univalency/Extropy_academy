@@ -1,27 +1,38 @@
 import React, { Component } from "react";
+import { useState } from "react";
 import SimpleStorageContract from "./contracts/VolcanoToken.json";
 import getWeb3 from "./getWeb3";
 
 import "./App.css";
 
 class App extends Component {
-  state = { storageValue: 0, web3: null, accounts: null, contract: null, 
+  state = { storageValue: 0, web3: null, accounts: null, contract: null,
+  market_cap: 0, 
   address_mint: "", 
   address_nft: "",
   url_nft: 'about:blank', 
+  URIs: [],
   price: 0 , 
+  price_ETH: 0,
   ID: 0, 
   nft_number: 0,
   owner: null,
-  nft_owned: undefined,
+  nft_creationTime: undefined,
+  nft_id: null,
+  nft_URI: null,
+  nft_price: null,
+  ID_purchase: 0,
+  purchase_price: null,
+
 };
 
   componentDidMount = async () => {
     try {
 
-      this.handleSubmit = this.handleSubmit.bind(this);
+      this.handleMint = this.handleMint.bind(this);
       this.handleLookUp = this.handleLookUp.bind(this);
       this.handleOwnership = this.handleOwnership.bind(this);
+      this.handlePurchase = this.handlePurchase.bind(this);
 
       // Get network provider and web3 instance.
       const web3 = await getWeb3();
@@ -39,7 +50,7 @@ class App extends Component {
 
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance },
+      this.setState({ web3, accounts, contract: instance},
         //this.runExample
         );
     } catch (error) {
@@ -87,17 +98,22 @@ class App extends Component {
 
 handleChange = (value, key) => {
     this.setState({ [key]: value });
+    this.setState({price_ETH: this.state.price/10**18});
   };
 
  
 
 
-  async handleSubmit(event){
+  async handleMint(event){
     event.preventDefault();
     const {accounts, contract} = this.state;
     await contract.methods.mintToken(this.state.address_mint, this.state.url_nft, this.state.price).send({
       from: accounts[0],
     });
+    var newArray = this.state.URIs.slice();    
+    newArray.push(this.state.url_nft);   
+    this.setState({URIs:newArray});
+    this.setState({market_cap: this.state.market_cap + this.state.price/10**18})
     //const reply1 = await contract.methods.digit().call();
     //this.setState({storageValue: reply1 });
   };
@@ -114,8 +130,27 @@ handleChange = (value, key) => {
      event.preventDefault();
      const {accounts, contract} = this.state;
      const ownership = await contract.methods.ownershipLog(this.state.address_nft , this.state.nft_number).call();
-     console.log(ownership);
-     //this.setState({nft_owned: ownership});
+     console.log(ownership.price);
+     this.setState({
+      nft_creationTime: ownership._timestamp,
+      nft_id: ownership._id,
+      nft_URI: ownership._URI,
+      nft_price: ownership.price,
+    });
+  };
+
+  async handlePurchase(event) {
+     event.preventDefault();
+     const {accounts, contract} = this.state;
+     const address_owner = await contract.methods.IdOwnerhip(this.state.ID_purchase).call();
+     const ownership = await contract.methods.ownershipLog(address_owner, 0).call();
+     this.setState({purchase_price: ownership.price});
+     const accountss = await window.ethereum.enable();
+     //const Web3 = await getWeb3();
+     await contract.methods.purchaseToken(this.state.ID_purchase, address_owner,accounts[0] ).send({
+      from: accounts[0],
+      value: this.state.purchase_price,
+    });
 
   };
 
@@ -129,7 +164,7 @@ handleChange = (value, key) => {
       <div className="App">
         <h1>Yury's obscure NFT Marketplace</h1>
         <p>Mint and look up ownerhip history</p>
-        <h2>Using Pinata IPFS storage</h2>
+        <h2>Using Pinata IPFS storage. Total market cap {this.state.market_cap}</h2>
         <p>
          
         </p>
@@ -139,7 +174,7 @@ handleChange = (value, key) => {
         <div><strong>Mint a new token here:</strong></div>
         <br></br>
 
-        <form onSubmit = {this.handleSubmit}>
+        <form onSubmit = {this.handleMint}>
          <label>
            address:
            <input name = "address" type = "text" value = {this.state.address_mint} onChange={event => this.handleChange(event.target.value, "address_mint")} />
@@ -151,9 +186,10 @@ handleChange = (value, key) => {
           </label>
           <br />
           <label>
-            price:
+            price (in Wei):
             <input name = "price" type = "number" value = {this.state.price} onChange={event => this.handleChange(event.target.value, "price")} />
           </label>
+          <p> price in ETH: {this.state.price_ETH}</p> 
           <br />
           <input type = "submit" value = "Submit"/>
         </form>
@@ -161,7 +197,7 @@ handleChange = (value, key) => {
 
         <form onSubmit = {this.handleLookUp} >
           <label>
-            <p>Look up owner by token ID: &nbsp;</p>
+            <p> <strong>Look up owner by token ID: </strong> &nbsp;</p>
             <input name = "Id" type = "number" value = {this.state.ID} onChange={event => this.handleChange(event.target.value, "ID")} />
             <input type = "submit" value = "Submit"/>
           </label>
@@ -173,7 +209,7 @@ handleChange = (value, key) => {
         <br></br>
         <form onSubmit = {this.handleOwnership} >
           <label>
-            <p>Look up tokens owned by address: &nbsp;</p>
+            <p> <strong>Look up tokens owned by address: </strong> &nbsp;</p>
             <input name = "address:" type = "text" value = {this.state.address_nft} onChange={event => this.handleChange(event.target.value, "address_nft")} />
             <input name = "NFT's number:" type = "number" value = {this.state.nft_number} onChange={event => this.handleChange(event.target.value, "nft_number")} />
             <input type = "submit" value = "Submit"/>
@@ -181,7 +217,23 @@ handleChange = (value, key) => {
         </form>
 
         <br></br>
-        <div> NFT data: {this.state.nft_owned} </div>
+        <div> NFT data: 
+        <p> timestamp: {this.state.nft_creationTime} </p>  
+        <p> ID: {this.state.nft_id}</p> 
+        <p> URI: {this.state.nft_URI} </p> 
+        <p> Price: {this.state.nft_price} </p> 
+        </div>
+
+        <br></br>
+        <form onSubmit = {this.handlePurchase} >
+          <label>
+            <p> <strong>Purchase token with id  <input name = "Id" type = "number" value = {this.state.ID_purchase} onChange={event => this.handleChange(event.target.value, "ID_purchase")} />
+            </strong> &nbsp;</p>
+            <input type = "submit" value = "Submit"/>
+            <p> Price: {this.state.purchase_price} </p>
+          </label>
+        </form>
+
 
         <p> NFT minted by contract owner: </p>
         <a>
