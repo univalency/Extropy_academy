@@ -4,6 +4,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+// A slight variation of the ERC721 contract. See this video for a demonstration of how this contract performs on the front end: https://youtu.be/i-z1T_hU0g8
+//See App.js file to see how React was used for front end
+
 contract VolcanoToken is ERC721('Yury Token', 'YTK'), Ownable {
     uint256 public _tokenId;
     
